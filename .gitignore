@@ -1,0 +1,7 @@
+*.o
+sentinel_network
+sentinel_telemetry
+sentinel_payload
+.DS_Store
+**/._*
+__MACOSX/

@@ -4,16 +4,25 @@ Task 1: seed generator
 """
 
 import struct, os
-
-# create seed folder
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seeds")
-os.makedirs(OUT, exist_ok=True)
-
-# save as a file
+ 
+BASE = os.path.dirname(os.path.abspath(__file__))
+ 
+# Each seed goes into its matching target folder under targets/.
+FOLDERS = {
+    "telemetry": os.path.join(BASE, "targets", "seeds_telemetry"),
+    "payload":   os.path.join(BASE, "targets", "seeds_payload"),
+    "network":   os.path.join(BASE, "targets", "seeds_network"),
+}
+for folder in FOLDERS.values():
+    os.makedirs(folder, exist_ok=True)
+ 
 def write(name, data: bytes):
-    with open(os.path.join(OUT, name), "wb") as f:
+    # choose the folder by which target word appears in the file name
+    folder = next(f for key, f in FOLDERS.items() if key in name)
+    path = os.path.join(folder, name)
+    with open(path, "wb") as f:
         f.write(data)
-    print(f" {name:28s} {len(data):4d} bytes")
+    print(f"  {path:55s} {len(data):4d} bytes")
 
 
 # target 1: sentinel_telemetry
@@ -62,6 +71,22 @@ telem_b = (
     b"stream_multiplier=8\n"
 )
 write("seed_telemetry_b.conf", telem_b)
+
+# Seed C: safe-holder profile - same recognised keys, different values/state
+telem_c = (
+    b"# seed C - safe-hold profile\n"
+    # Test a generic subsystem mode entry.
+    b"subsystem_mode=safe_hold\n"
+    # Test the sensor ID parser path
+    b"sensor_id_backup=411\n"
+    # Test the calibration factor parser path
+    b"cal_factor_gyro=0.87\n"
+    #  Test the logging path with a different event
+    b"log_event=mode_change_ok\n"
+    # Test the stream multiplier path with a value of 1.
+    b"stream_multiplier=1\n"
+)
+write("seed_telemetry_c.conf", telem_c)
 
 # target 2: sentinel_payload
 # format: header + binary data
@@ -116,7 +141,16 @@ write(
     )
 )
 
-
+write(
+    "seed_payload_c.bin",
+    payload_frame(
+        16,                          # Width
+        16,                          # Height
+        1,                          # Depth
+        b"RADAR_WIDEBAND_SURVEY_PASS",       # Frame label
+        lambda i: (i * 3) & 0xFF   # Deterministic byte pattern
+    )
+)
 
 # target 3: sentinel_network (binary packet)
 # Format: header + payload.
@@ -152,6 +186,15 @@ write(
     packet(3, b"EMERGENCY_FAILOVER\x00")
 )
 
+# Seed C: two packets containing status messages
+# type 3 and 1 two different parser branches in one imput
+# the trailing NUL in each payload safety terminal it as a C string
+# comnining both packets tests how the paraser handles consecutive packets
+
+write(
+    "seed_network_c.bin",
+    packet(3, b"STATUS_A\x00") + packet(1, b"STATUS_B\x00")
+)
 
 # All six seeds have now been generated.
 print("\nDone. 6 seeds in ./seeds/")

@@ -1,0 +1,6 @@
+# environment variables:
+AFL_CUSTOM_INFO_PROGRAM=./sentinel_network_fuzz
+AFL_CUSTOM_INFO_PROGRAM_ARGV=@@
+AFL_CUSTOM_INFO_OUT=out_network/default
+# command line:
+'afl-fuzz' '-i' 'seeds_network' '-o' 'out_network' '-m' 'none' '-t' '30000' '--' './sentinel_network_fuzz' '@@'

@@ -1,6 +1,6 @@
 # environment variables:
-AFL_CUSTOM_INFO_PROGRAM=./sentinel_payload_fuzz
+AFL_CUSTOM_INFO_PROGRAM=./sentinel_payload
 AFL_CUSTOM_INFO_PROGRAM_ARGV=@@
-AFL_CUSTOM_INFO_OUT=out_payload/default
+AFL_CUSTOM_INFO_OUT=out_payload//default
 # command line:
-'afl-fuzz' '-i' 'seeds_payload' '-o' 'out_payload' '-m' 'none' '-t' '30000' '--' './sentinel_payload_fuzz' '@@'
+'afl-fuzz' '-i' 'seeds_payload/' '-o' 'out_payload/' '--' './sentinel_payload' '@@'

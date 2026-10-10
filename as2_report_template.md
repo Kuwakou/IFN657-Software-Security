@@ -1,19 +1,19 @@
 # IFN657 Assignment 2: Vulnerability Discovery
 
-**Group ID:** `[Group_XX]`  
-**Submission Date:** `[DD Month YYYY]`  
+**Group ID:** `Group_12`  
+**Submission Date:** `16 Oct 2026`  
 
 ### Team Members & Workload Distribution
 | Student Name | Student ID | Email Address | Assigned Subtasks / Roles | Contribution (%) |
 | :--- | :--- | :--- | :--- | :--- |
-| `[Full Name 1]` | `[n0000001]` | `[student1@connect.qut.edu.au]` | `[e.g. Lead, Telemetry parser, Exploit development]` | 25% |
+| `Koutaro Kuwahara` | `n12282901` | `koutaro.kuwahara@connect.qut.edu.au` | `[e.g. Lead, Telemetry parser, Exploit development]` | 25% |
 | `[Full Name 2]` | `[n0000002]` | `[student2@connect.qut.edu.au]` | `[e.g. Payload parser, GDB/sanitisers crash triage]` | 25% |
 | `[Full Name 3]` | `[n0000003]` | `[student3@connect.qut.edu.au]` | `[e.g. Network handler, AFL++ parallel fuzzing]` | 25% |
 | `[Full Name 4]` | `[n0000004]` | `[student4@connect.qut.edu.au]` | `[e.g. Code remediation, Regression testing, Demo]` | 25% |
 
 **Submission Files (Canvas):**
-- `Group_XX.pdf` (compiled from this completed Markdown report template)
-- `Group_XX.zip` (archive containing `seeds/`, `crashes/`, `exploits/`, `remediated_src/`, `README.md`, and `Group_XX.cast`)
+- `Group_12.pdf` (compiled from this completed Markdown report template)
+- `Group_12.zip` (archive containing `seeds/`, `crashes/`, `exploits/`, `remediated_src/`, `README.md`, and `Group_XX.cast`)
 
 <!-- Instructions: Complete this template with your technical analysis, AFL++ metrics, GDB/sanitiser evidence, code fixes, and exploit scripts. Export to Group_XX.pdf before submitting. Ensure that formatting, tables, code blocks, and screenshots render cleanly and legibly. -->
 

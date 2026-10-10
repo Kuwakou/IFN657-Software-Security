@@ -1,6 +1,6 @@
 Command line used to find this crash:
 
-afl-fuzz -i seeds_telemetry -o out_telemetry -m none -t 30000 -- ./sentinel_telemetry_fuzz @@
+afl-fuzz -t 30000 -i seeds_telemetry/ -o out_telemetry/ -- ./sentinel_telemetry @@
 
 If you can't reproduce a bug outside of afl-fuzz, be sure to set the same
 memory limit. The limit used for this fuzzing session was 0 B.

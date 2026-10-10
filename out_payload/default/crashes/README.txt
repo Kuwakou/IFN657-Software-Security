@@ -1,6 +1,6 @@
 Command line used to find this crash:
 
-afl-fuzz -i seeds_payload -o out_payload -m none -t 30000 -- ./sentinel_payload_fuzz @@
+afl-fuzz -i seeds_payload/ -o out_payload/ -- ./sentinel_payload @@
 
 If you can't reproduce a bug outside of afl-fuzz, be sure to set the same
 memory limit. The limit used for this fuzzing session was 0 B.

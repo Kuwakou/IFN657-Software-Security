@@ -1,0 +1,8 @@
+# environment variables:
+AFL_CUSTOM_INFO_PROGRAM=./sentinel_telemetry
+AFL_CUSTOM_INFO_PROGRAM_ARGV=@@
+AFL_CUSTOM_INFO_OUT=out_telemetry//default
+AFL_USE_ASAN=1
+AFL_USE_UBSAN=1
+# command line:
+'afl-fuzz' '-t' '30000' '-i' 'seeds_telemetry/' '-o' 'out_telemetry/' '--' './sentinel_telemetry' '@@'

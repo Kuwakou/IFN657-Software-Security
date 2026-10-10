@@ -34,7 +34,7 @@ def write(name, data: bytes):
 
 print ("[telemetry]")
 
-# # Seed A: tests sensor, calibration, logging, and stream paths. 
+# Seed A: tests sensor, calibration, logging, and stream paths. 
 telem_a = (
     b"# seed A - calibration & stream profile\n"
     # generic key-value entry
@@ -60,7 +60,7 @@ telem_b = (
     # Generic key-value entry with a different value.
     b"subsystem_mode=active\n"
     # Test the auxiliary buffer allocation path.
-    b"aux_buffer_request=8\n"
+    b"aux_buffer_request=256\n"
     # Test the sensor_id_* parser path with another sensor name.
     b"sensor_id_array=307\n"
     # Test the cal_factor_* parser path with another calibration value.

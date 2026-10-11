@@ -1,0 +1,12 @@
+# AFL++ dictionary - sentinel_telemetry directive keywords
+kw_log="log_event="
+kw_stream="stream_multiplier="
+kw_aux="aux_buffer_request="
+kw_sensor="sensor_id_"
+kw_cal="cal_factor_"
+kw_mode="subsystem_mode="
+fmt_s="%s"
+fmt_n="%n"
+fmt_x="%x"
+eq="="
+hash="#"

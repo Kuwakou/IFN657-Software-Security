@@ -1,0 +1,7 @@
+# AFL++ dictionary - sentinel_network magic + types
+magic="\x78\x56\x34\x12"
+type1="\x01\x00"
+type2="\x02\x00"
+type3="\x03\x00"
+len16="\x10\x00"
+len0="\x00\x00"

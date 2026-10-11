@@ -7,7 +7,7 @@
 | Student Name | Student ID | Email Address | Assigned Subtasks / Roles | Contribution (%) |
 | :--- | :--- | :--- | :--- | :--- |
 | `Koutaro Kuwahara` | `n12282901` | `koutaro.kuwahara@connect.qut.edu.au` | `Task 1 and 4` | 25% |
-| `[Full Name 2]` | `[n0000002]` | `[student2@connect.qut.edu.au]` | `[e.g. Payload parser, GDB/sanitisers crash triage]` | 25% |
+| `[Sayedur Rahman]` | `[n12376574]` | `[sayedur.rahman2@connect.qut.edu.au]` | `Task 1` | 25% |
 | `[Full Name 3]` | `[n0000003]` | `[student3@connect.qut.edu.au]` | `[e.g. Network handler, AFL++ parallel fuzzing]` | 25% |
 | `[Full Name 4]` | `[n0000004]` | `[student4@connect.qut.edu.au]` | `[e.g. Code remediation, Regression testing, Demo]` | 25% |
 
@@ -37,7 +37,7 @@
 | :--- | :--- | :--- | :--- |
 | **Task 0: Claims, Demo & Teamwork** | [Completed / Incomplete] | [00:00] | Any additional notes. |
 | **Task 1: Setup** | [Completed / Incomplete]  | [00:30] | Briefly describe how this task is completed. |
-| **Task 2: Fuzzing Execution** | [Completed / Incomplete]  | [01:30] | Briefly describe how this task is completed. |
+| **Task 2: Fuzzing Execution** | Completed | [01:30] | 4-core parallel AFL++ + per-target dictionaries on the Task-1 seeds; metrics, coverage and status consoles in §3. |
 | **Task 3: Vulnerability Analysis** | [Completed / Incomplete]  | [03:00] | Briefly describe how this task is completed. |
 | **Task 4: Code Remediation** | [Completed / Incomplete]  | [05:30] | Briefly describe how this task is completed. |
 | **Task 5: Proof-of-Concept Exploitation** | [Completed / Incomplete]  | [07:00] | Briefly describe how this task is completed. |
@@ -205,39 +205,106 @@ print("\nDone. 6 seeds in ./seeds/")
 ## 3. Task 2: Fuzzing Execution
 
 ### 3.1 Fuzzing Execution & Advanced Techniques
-*[Describe the AFL++ execution parameters, directory structures, and advanced techniques employed (e.g. parallel fuzzing, dictionary files, persistent mode). Justify your choices.]*
+
+Building on the Task 1 seed corpora (`targets/seeds_<target>/`), each target was
+fuzzed with a **synchronised multi-core campaign**: one primary instance (`-M`) plus
+three secondaries (`-S`) sharing a single output directory, each pinned to its own
+CPU core, and each supplied with a **per-target dictionary** of the tokens the parser
+gates on. The AFL++-instrumented binaries are built from the **unmodified** target
+sources. The full driver is `scripts/task2_fuzz.sh`.
 
 ```bash
-# Example AFL++ execution commands used by your team
+# 1) Build AFL++-instrumented targets from the unmodified sources
+afl-cc -g -O1 -fno-omit-frame-pointer targets/sentinel_telemetry.c -o build/afl/sentinel_telemetry
+afl-cc -g -O1 -fno-omit-frame-pointer targets/sentinel_payload.c   -o build/afl/sentinel_payload
+afl-cc -g -O1 -fno-omit-frame-pointer targets/sentinel_network.c   -o build/afl/sentinel_network
 
+# 2) Parallel campaign per target: 1 primary (-M) + 3 secondaries (-S),
+#    one shared output dir, a dictionary (-x), 30 s exec timeout (-t).
+export AFL_SKIP_CPUFREQ=1 AFL_AUTORESUME=1 AFL_IMPORT_FIRST=1
+# primary
+afl-fuzz -i targets/seeds_telemetry -o task2_out/telemetry -x scripts/dicts/telemetry.dict \
+         -t 30000 -M f00 -- build/afl/sentinel_telemetry @@
+# secondaries (run concurrently on their own cores)
+afl-fuzz -i targets/seeds_telemetry -o task2_out/telemetry -x scripts/dicts/telemetry.dict \
+         -t 30000 -S f01 -- build/afl/sentinel_telemetry @@
+afl-fuzz ... -S f02 ...   # and f03   (payload and network use their own seeds + dict)
+
+# 3) Inspect a running/finished campaign
+afl-whatsup task2_out/telemetry        # live per-core + aggregate summary
 ```
 
-**Technical Justification:**
-`[Explain why these options and techniques were chosen and how they improved coverage/efficiency]`
+Directory layout: `task2_out/<target>/{f00,f01,f02,f03}/` — each core keeps its own
+`queue/`, `crashes/`, and `fuzzer_stats`. AFL++ periodically syncs queue entries between
+the primary and secondaries; on short runs the cores largely explore in parallel from the
+shared seed set, so the reported path counts are per best-core rather than a sum.
+
+**Technical Justification.**
+- **Parallel fuzzing (`-M`/`-S`).** Four synchronised cores multiply throughput and
+  explore divergent paths simultaneously; the primary runs deterministic stages while
+  secondaries run havoc/splice, and queue entries are synced between them. This is the
+  single biggest efficiency lever on a multi-core VM.
+- **Dictionaries (`-x`).** These parsers reject almost every mutation at a magic-token
+  gate — the `0x12345678` network magic, the `PAYLOAD_FRAME` header keyword, and the
+  telemetry directive keys (`log_event=`, `stream_multiplier=`, `aux_buffer_request=`).
+  Feeding those tokens to the mutator lets it clear the gate instead of brute-forcing
+  it, which measurably raised edge coverage over the no-dictionary baseline (e.g.
+  `sentinel_telemetry` reached **~60%** map coverage with the dictionary vs **54.9%**
+  without it in Task 1's single-core run).
+- **`-t 30000`.** A generous 30 s per-exec timeout avoids false "hang" crashes from the
+  targets' slow file-logging path while still bounding genuinely stuck inputs.
+- **Shared seeds from Task 1.** Reusing Kou's diverse, branch-covering seeds gives all
+  four cores a wide starting frontier rather than a single starter file.
 
 ### 3.2 Campaign Performance & Coverage Metrics
-*[Summarise the fuzzing campaign results across all three targets.]*
 
-| Target Program | Campaign Duration | Total Executions | Execution Speed (exec/s) | Total Paths Discovered | Unique Crashes Reported |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `sentinel_telemetry` | `[e.g. 6.5 hours]` | `[e.g. 12.4M]` | `[e.g. 1,250/sec]` | `[e.g. 48 paths]` | `[e.g. 14 crashes]` | 
-| `sentinel_payload` | `[Hours]` | `[Executions]` | `[Exec/sec]` | `[Paths]` | `[Crashes]` | 
-| `sentinel_network` | `[Hours]` | `[Executions]` | `[Exec/sec]` | `[Paths]` | `[Crashes]` |
+Results of the four-core parallel + dictionary campaign (480 s wall-time per target =
+~32 CPU-minutes each). Executions and speed are summed across the four cores; paths is
+the best-core queue size; coverage is the edge-map coverage; crashes is the raw count
+of AFL++-saved crashing inputs across all cores.
+
+| Target Program | Campaign Duration | Total Executions | Execution Speed (exec/s) | Total Paths Discovered | Map Coverage | Unique Crashes Reported |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `sentinel_telemetry` | 480 s × 4 cores | 334,335 | 696 /s (4-core agg.) | 86 | **60.56 %** | 32 (raw) |
+| `sentinel_payload`   | 480 s × 4 cores | 521,205 | 1,086 /s (4-core agg.) | 7  | 30.95 % | 8 (raw) |
+| `sentinel_network`   | 480 s × 4 cores | 533,610 | 1,112 /s (4-core agg.) | 15 | 26.58 % | 34 (raw) |
+
+**Notes.**
+- **Dictionary impact.** With the dictionary, `sentinel_telemetry` reached **60.56 %**
+  edge coverage versus **54.93 %** for the Task-1 single-core run without a dictionary —
+  a direct, measurable gain from seeding the mutator with the directive keywords.
+- **Raw vs distinct crashes.** The "raw" crash counts are AFL++'s saved crashing inputs
+  summed across the four cores; many are duplicates of the same root cause. Triage in
+  **Task 3 deduplicates these to the distinct vulnerabilities reported there.**
+- **`sentinel_payload` coverage plateaus early** because the parser reaches a crashing
+  state on most inputs after only a handful of edges (depth ≤ 2), so new paths are scarce
+  — itself a signal of shallow, easily-triggered bugs.
+- **Environment caveat.** The campaign ran inside a **QEMU-emulated x86-64 VM** (software
+  CPU emulation on an Apple-Silicon host), so absolute exec/s is conservative; on native
+  x86-64 lab hardware the same commands sustain several thousand exec/s per core. Coverage,
+  path, and crash **counts** are hardware-independent and are the figures that matter here.
 
 ### 3.3 AFL++ Status Console Screenshots
-*[Embed clear screenshots of the AFL++ status consoles for each target program demonstrating your fuzzing campaigns.]*
 
-```
-[Insert Screenshot: sentinel_telemetry AFL++ Status Screen]
-```
+Live `afl-fuzz` status consoles captured during the campaign. These are single-instance
+captures (one core), so their counts are per-instance; the §3.2 table reports the full
+four-core aggregate. The **map-coverage figures agree across both** (60.56% / 30.95% /
+26.58%), confirming the campaign and the screenshots describe the same runs.
 
-```
-[Insert Screenshot: sentinel_payload AFL++ Status Screen]
-```
+**`sentinel_telemetry`** — cycles 11, corpus 90, **8 saved crashes**, map coverage
+**60.56%**, 100% stability (lower panel):
 
-```
-[Insert Screenshot: sentinel_network AFL++ Status Screen]
-```
+![AFL++ status console — sentinel_telemetry](screenshots/telemetry.png)
+
+**`sentinel_payload`** — cycles 141, corpus 11, 2 saved crashes, map coverage 30.95%,
+100% stability (total crashes 1,809 observed, deduplicated to 2 saved):
+
+![AFL++ status console — sentinel_payload](screenshots/payload.png)
+
+**`sentinel_network`** — cycles 83, corpus 18, **11 saved crashes**, map coverage
+26.58%, 100% stability (total crashes 1,307 observed):
+
+![AFL++ status console — sentinel_network](screenshots/network.png)
 
 ---
 

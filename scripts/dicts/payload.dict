@@ -1,0 +1,7 @@
+# AFL++ dictionary - sentinel_payload header tokens
+magic_hdr="PAYLOAD_FRAME "
+dim="1337"
+nl="\x0a"
+lbl="RADAR_SCAN_01"
+fmt_s="%s"
+fmt_n="%n"

@@ -7,7 +7,7 @@
 | Student Name | Student ID | Email Address | Assigned Subtasks / Roles | Contribution (%) |
 | :--- | :--- | :--- | :--- | :--- |
 | `Koutaro Kuwahara` | `n12282901` | `koutaro.kuwahara@connect.qut.edu.au` | `Task 1 and 4` | 25% |
-| `[Sayedur Rahman]` | `[n12376574]` | `[sayedur.rahman2@connect.qut.edu.au]` | `Task 1` | 25% |
+| `[Sayedur Rahman]` | `[n12376574]` | `[sayedur.rahman2@connect.qut.edu.au]` | `Task 2` | 25% |
 | `[Full Name 3]` | `[n0000003]` | `[student3@connect.qut.edu.au]` | `[e.g. Network handler, AFL++ parallel fuzzing]` | 25% |
 | `[Full Name 4]` | `[n0000004]` | `[student4@connect.qut.edu.au]` | `[e.g. Code remediation, Regression testing, Demo]` | 25% |
 
@@ -36,7 +36,7 @@
 | Task | Status | `asciinema` Timestamp (mm:ss) | Notes |
 | :--- | :--- | :--- | :--- |
 | **Task 0: Claims, Demo & Teamwork** | [Completed / Incomplete] | [00:00] | Any additional notes. |
-| **Task 1: Setup** | [Completed / Incomplete]  | [00:30] | Briefly describe how this task is completed. |
+| **Task 1: Setup** | [Completed / Incomplete]  | [00:30] | Compiled all three targets with AFL++ (`afl-clang-fast`) plus ASAN/UBSAN builds, and generated 3 verified non-crashing seeds per target with a Python script. |
 | **Task 2: Fuzzing Execution** | Completed | [01:30] | 4-core parallel AFL++ + per-target dictionaries on the Task-1 seeds; metrics, coverage and status consoles in §3. |
 | **Task 3: Vulnerability Analysis** | [Completed / Incomplete]  | [03:00] | Briefly describe how this task is completed. |
 | **Task 4: Code Remediation** | [Completed / Incomplete]  | [05:30] | Briefly describe how this task is completed. |

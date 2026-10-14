@@ -40,7 +40,7 @@ void log_telemetry_event(const char *event_message) {
         fclose(logfile);
     }
     printf("[TELEMETRY LOG] ");
-    printf("%s", event_message); // Task 4: Vuln 2
+    printf(event_message);
     printf("\n");
 }
 
@@ -97,8 +97,7 @@ void process_telemetry_directive(char *key, char *value) {
         }
     }
     
-    //Task 1: Vuln 1
-    snprintf(status_output, sizeof(status_output), "Directive parsed: %s=%s", formatted_key, formatted_value);
+    sprintf(status_output, "Directive parsed: %s=%s", formatted_key, formatted_value);
     printf("%s\n", status_output);
 }
 

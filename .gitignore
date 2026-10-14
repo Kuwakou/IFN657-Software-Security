@@ -5,3 +5,7 @@ sentinel_payload
 .DS_Store
 **/._*
 __MACOSX/
+out_*/default/fastresume.bin
+out_*/default/fuzz_bitmap
+out_*/default/target_hash
+out_*/default/queue/

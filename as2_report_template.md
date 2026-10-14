@@ -39,7 +39,7 @@
 | **Task 1: Setup** | [Completed / Incomplete]  | [00:30] | Compiled all three targets with AFL++ (`afl-clang-fast`) plus ASAN/UBSAN builds, and generated 3 verified non-crashing seeds per target with a Python script. |
 | **Task 2: Fuzzing Execution** | Completed | [01:30] | 4-core parallel AFL++ + per-target dictionaries on the Task-1 seeds; metrics, coverage and status consoles in §3. |
 | **Task 3: Vulnerability Analysis** | [Completed / Incomplete]  | [03:00] | Briefly describe how this task is completed. |
-| **Task 4: Code Remediation** | [Completed / Incomplete]  | [05:30] | Briefly describe how this task is completed. |
+| **Task 4: Code Remediation** | [Completed / Incomplete]  | [05:30] | Replaced unbounded `<func>` in `<file>` with a length-checked `<safe func>`; re-ran the PoC/crash inputs and confirmed no crash. |
 | **Task 5: Proof-of-Concept Exploitation** | [Completed / Incomplete]  | [07:00] | Briefly describe how this task is completed. |
 | **Total Number of Distinct Vulnerabilities Found** | [The total number] | N/A | Any additional notes. |
 

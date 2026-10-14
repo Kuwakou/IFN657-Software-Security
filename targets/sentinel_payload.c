@@ -26,7 +26,7 @@ static payload_frame_t *global_frame = NULL;
 
 void process_frame_label(const char *label) {
     char local_label[MAX_LABEL_LEN];
-    strcpy(local_label, label);
+    snprintf(local_label, sizeof(local_label), "%", label); //Task 4: Vuln 3    
     printf("Processing observation frame label: %s\n", local_label);
 }
 
@@ -80,8 +80,12 @@ void process_payload_data(const char *input_bytes, size_t input_size) {
         global_frame->is_valid = 1;
         strncpy(global_frame->sensor_type, "SPECTRAL_RADAR", sizeof(global_frame->sensor_type) - 1);
     }
-    
-    memcpy(global_frame->data, input_bytes, input_size);
+    //Task 4: Vuln 4
+    size_t copy_len = input_size;
+    if (copy_len > global_frame -> size) {
+        copy_len = global_frame -> size;
+    }
+    memcpy(global_frame->data, input_bytes, copy_size);
     printf("Transferred %zu bytes into observation buffer.\n", input_size);
 }
 

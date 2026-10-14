@@ -407,39 +407,49 @@ four-core aggregate. The **map-coverage figures agree across both** (60.56% / 30
 ## 5. Task 4: Code Remediation
 
 ### 5.1 Proposed Code-Level Remediations
-*[Provide sound, robust C code fixes for every identified vulnerability. Explain how each fix prevents memory corruption without breaking legitimate parsing functionality.]*
 
-#### Patch for Vulnerability 1 (`sentinel_telemetry.c`):
+#### Patch for Vulnerability 1 (`sentinel_telemetry.c`): Line 100
 ```c
-// Provide the corrected C code block or diff
+snprintf(status_output, sizeof(status_output), "Directive parsed: %s=%s", formatted_key, formatted_value);
 ```
 **Technical Justification:**
-`[Explain how the patch fixes the root cause]`
+The original code used `sprintf()`, which writes into `status_output` without checking the buffer size. Because the key and value come from user input and can together be longer than the 64 bytes buffer, the write could run past the end of `status_output` and corrupt the stack. The patch uses `snprintf()` with `sizeof(status_output)`, so the function never writes more than the buffer can hold and always leaves room for the terminator. 
 
-#### Patch for Vulnerability 2 (`sentinel_telemetry.c`):
+#### Patch for Vulnerability 2 (`sentinel_telemetry.c`): line 43
 ```c
-// Provide the corrected C code block or diff
+printf("%s", event_message);
 ```
 **Technical Justification:**
-`[Explain how the patch fixes the root cause]`
+The original code used `printf(event_message)`, passing user-controlled input directly as the format string. This let an attacker include specifiers such as `%x` or `%n`, which `printf()` would interpret, allowing stack memory to be read or written. The patch uses a fixed "%s" format and passes `event_message` as a normal argument, so the input is always treated as plain text and never as instruction. 
 
-#### Patch for Vulnerability X (`sentinel_payload.c`):
+#### Patch for Vulnerability 3 (`sentinel_payload.c`): line 29
 ```c
-// Provide the corrected C code block or diff
+snprintf(local_label, sizeof(local_label), "%s", label); 
 ```
 **Technical Justification:**
-`[Explain how the patch fixes the root cause]`
+The original code used `strcpy()` to copy the frame label into `local_label`, a 64 bytes buffer. Because the label is read from input with a width of up to 127 characters, a long label would overflow the buffer on the stack. The patch uses `snprintf()` with `sizeof(local_label)`, which limits the copy to the buffer size and guarantees termination. 
+
+#### Patch for Vulnerability 4 (`sentinel_payload.c`): line 84
+```c
+size_t copy_len = input_size;
+if (copy_len > global_frame -> size) {
+    copy_len = global_frame -> size;
+}
+memcpy(global_frame->data, input_bytes, copy_len);
+```
+The original code used `memcpy()` using `input_size` to copy into `global_frame->data`, a fixed 1024-byte buffer. When the input was larger than 1024 bytes, the copy wrote past the end of the heap buffer. The patch calculates a safe length. If `input_size` is larger than the buffer, it is reduced to `global_frame->size` and `memcpy()` then uses this capped length. 
+
 
 ### 5.2 Regression Verification & Fuzzing Proof
-*[Demonstrate that your patched target binaries run cleanly on previously crashing inputs and continue to accept valid seed inputs without errors.]*
 
 ```bash
 # Demonstrate executing the patched binaries against all triggering crash inputs
 
+
 ```
 
 **Regression Fuzzing Observations:**
-`[Document your regression campaign results proving zero new crashes occurred during re-fuzzing]`
+
 
 ---
 

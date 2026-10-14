@@ -40,7 +40,7 @@ void log_telemetry_event(const char *event_message) {
         fclose(logfile);
     }
     printf("[TELEMETRY LOG] ");
-    printf("%s", event_message); // Task 4: Vuln 2
+    printf("%s", event_message); // Task 4: Vuln 2 - fixed "%s" format so user input is treated as data, not an interpretable format string
     printf("\n");
 }
 
@@ -97,7 +97,7 @@ void process_telemetry_directive(char *key, char *value) {
         }
     }
     
-    //Task 1: Vuln 1
+    //Task 4: Vuln 1 - snprintf bounds the write to the buffer size; sprintf could overflow status_output
     snprintf(status_output, sizeof(status_output), "Directive parsed: %s=%s", formatted_key, formatted_value);
     printf("%s\n", status_output);
 }

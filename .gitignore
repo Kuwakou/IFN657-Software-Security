@@ -9,3 +9,8 @@ out_*/default/fastresume.bin
 out_*/default/fuzz_bitmap
 out_*/default/target_hash
 out_*/default/queue/
+out_*/
+sentinel_*_fuzz
+sentinel_*_asan
+sentinel_*_dbg
+*_patched

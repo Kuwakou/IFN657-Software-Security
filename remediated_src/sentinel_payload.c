@@ -26,13 +26,13 @@ static payload_frame_t *global_frame = NULL;
 
 void process_frame_label(const char *label) {
     char local_label[MAX_LABEL_LEN];
-    snprintf(local_label, sizeof(local_label), "%s", label); //Task 4: Vuln 3    
+    snprintf(local_label, sizeof(local_label), "%s", label); //Task 4: Vuln 3 - snprintf caps the copy at buffer size; strcpy could overflow local_label  
     printf("Processing observation frame label: %s\n", local_label);
 }
 
 void log_payload_error(const char *error_description) {
     fprintf(stderr, "[PAYLOAD ERROR] ");
-    fprintf(stderr, error_description);
+    fprintf(stderr, "%s", error_description); //Task 4: Vuln 5 - fixed "%s" format so error text cannot be interpreted as format specifiers
     fprintf(stderr, "\n");
 }
 
@@ -80,13 +80,13 @@ void process_payload_data(const char *input_bytes, size_t input_size) {
         global_frame->is_valid = 1;
         strncpy(global_frame->sensor_type, "SPECTRAL_RADAR", sizeof(global_frame->sensor_type) - 1);
     }
-    //Task 4: Vuln 4
+    //Task 4: Vuln 4 - cap copy length to the 1024-byte buffer so an oversized frame cannot overflow the heap
     size_t copy_len = input_size;
     if (copy_len > global_frame -> size) {
         copy_len = global_frame -> size;
     }
     memcpy(global_frame->data, input_bytes, copy_len);
-    printf("Transferred %zu bytes into observation buffer.\n", input_size);
+    printf("Transferred %zu bytes into observation buffer.\n", copy_len);
 }
 
 int parse_payload_file(FILE *fp) {

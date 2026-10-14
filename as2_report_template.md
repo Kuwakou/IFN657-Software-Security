@@ -7,9 +7,9 @@
 | Student Name       | Student ID    | Email Address                                   | Assigned Subtasks / Roles                           | Contribution (%) |
 |--------------------|---------------|-------------------------------------------------|-----------------------------------------------------|------------------|
 | `Koutaro Kuwahara` | `n12282901`   | `koutaro.kuwahara@connect.qut.edu.au`           | `Task 1 and 4`                                      | 25%              |
-| `[Sayedur Rahman]` | `[n12376574]` | `[sayedur.rahman2@connect.qut.edu.au]`          | `Task 1`                                            | 25%              |
-| `August Enthoven`  | `n11138947`   | `augustchristopher.enthoven@connect.qut.edu.au` | `Task 2 and 4`                                      | 25%              |
-| `[Full Name 4]`    | `[n0000004]`  | `[student4@connect.qut.edu.au]`                 | `[e.g. Code remediation, Regression testing, Demo]` | 25%              |
+| `[Sayedur Rahman]` | `[n12376574]` | `[sayedur.rahman2@connect.qut.edu.au]`          | `Task 2`                                            | 25%              |
+| `August Enthoven`  | `n11138947`   | `augustchristopher.enthoven@connect.qut.edu.au` | `Task 1 and 3`                                      | 25%              |
+| `[Full Name 4]`    | `[n0000004]`  | `[student4@connect.qut.edu.au]`                 | `Task 5`                                            | 25%              |
 
 **Submission Files (Canvas):**
 - `Group_12.pdf` (compiled from this completed Markdown report template)
@@ -82,7 +82,6 @@ unset AFL_USE_ASAN AFL_USE_UBSAN
 
 
 ### 2.2 Seed Corpus
-*[Detail the 3 to 5 valid seeds created for each target program. Explain why each seed is structurally valid and what parsing path it exercises.]*
 
 #### Target 1: `sentinel_telemetry` Seed Set
 | Seed Filename | Input Content / Syntax Summary | Target Branch / Parsing State Exercised |
@@ -786,13 +785,108 @@ The original code used `memcpy()` using `input_size` to copy into `global_frame-
 ### 5.2 Regression Verification & Fuzzing Proof
 
 ```bash
-# Demonstrate executing the patched binaries against all triggering crash inputs
+# Rebuild all three targets from the remediated sources with ASAN/UBSAN
+export AFL_USE_ASAN=1 AFL_USE_UBSAN=1
+afl-clang-fast -std=gnu99 -w -g -o sentinel_telemetry_patched remediated_src/sentinel_telemetry.c
+afl-clang-fast -std=gnu99 -w -g -o sentinel_payload_patched   remediated_src/sentinel_payload.c
+afl-clang-fast -std=gnu99 -w -g -o sentinel_network_patched   remediated_src/sentinel_network.c
+unset AFL_USE_ASAN AFL_USE_UBSAN
 
+# Replay each former crash input against the patched binaries
+./sentinel_telemetry_patched crashing_inputs/telemetry_crash_01.conf
+./sentinel_telemetry_patched crashing_inputs/telemetry_crash_02.conf
+./sentinel_payload_patched   crashing_inputs/payload_crash_01.bin
+./sentinel_payload_patched   crashing_inputs/payload_crash_02.bin
+./sentinel_payload_patched   crashing_inputs/payload_crash_03.bin
+./sentinel_network_patched   crashing_inputs/network_crash_01.bin
 
+# No-regression check: valid Task-1 seeds still parse correctly
+./sentinel_payload_patched   targets/seeds_payload/seed_payload_a.bin
+./sentinel_telemetry_patched targets/seeds_telemetry/seed_telemetry_a.conf
 ```
 
 **Regression Fuzzing Observations:**
 
+
+```bash
+koukuwahara@lima-arm-fuzzer:~/IFN657_A2/IFN657-Software-Security$ ./sentinel_telemetry_patched crashing_inputs/telemetry_crash_01.conf
+=== Sentinel-1 Orbital Telemetry Processor ===
+Initialising telemetry stream parser...
+Directive parsed: subsystem_mode=nominal
+Directive parsed: sensor_id_primary=101
+[TELEMETRY LOG] CAL_ID_sensor_id_primary=101
+Directive parsed: cal_factor_thermal=1.05
+[TELEMETRY LOG] CAL_FACTOR_cal_factor_thermal=1.050000
+[TELEMETRY LOG] subsystem_initialised
+Directive parsed: log_event=subsystem_initialised
+Directive parsed: streammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm_multi
+Telemetry parsing complete. Processed entries: 6
+
+koukuwahara@lima-arm-fuzzer:~/IFN657_A2/IFN657-Software-Security$ ./sentinel_telemetry_patched crashing_inputs/telemetry_crash_02.conf
+=== Sentinel-1 Orbital Telemetry Processor ===
+Initialising telemetry stream parser...
+Directive parsed: subsystr=20
+[TELEMETRY LOG] Invalid telemetry line syntax (missing '=' delimiter): %n%n%x%
+Telemetry parsing complete. Processed entries: 1
+
+koukuwahara@lima-arm-fuzzer:~/IFN657_A2/IFN657-Software-Security$ ./sentinel_payload_patched crashing_inputs/payload_crash_01.bin
+=== Sentinel-1 Scientific Payload Ingestion Subsystem ===
+Processing observation frame label: RADAR_SCAN_01ioubhduoychbwiuphefuoyberwouihfnipuwhebouifdbwipue
+Payload frame dimensions: 8 x 8 x 1 (64 bytes required)
+Read 0 bytes from payload observation stream.
+Transferred 0 bytes into observation buffer.
+Active observation frame released from cache.
+
+koukuwahara@lima-arm-fuzzer:~/IFN657_A2/IFN657-Software-Security$ ./sentinel_payload_patched crashing_inputs/payload_crash_02.bin
+=== Sentinel-1 Scientific Payload Ingestion Subsystem ===
+Processing observation frame label: RADAR_SCAN_01
+Payload frame dimensions: 8 x 8 x 24 (1536 bytes required)
+Read 1536 bytes from payload observation stream.
+Transferred 1024 bytes into observation buffer.
+Active observation frame released from cache.
+
+koukuwahara@lima-arm-fuzzer:~/IFN657_A2/IFN657-Software-Security$ ./sentinel_payload_patched crashing_inputs/payload_crash_03.bin
+=== Sentinel-1 Scientific Payload Ingestion Subsystem ===
+[PAYLOAD ERROR] %x%x%n
+
+koukuwahara@lima-arm-fuzzer:~/IFN657_A2/IFN657-Software-Security$ ./sentinel_network_patched crashing_inputs/network_crash_01.bin
+=== Sentinel-1 RF Telecommand Stream Handler ===
+Ingesting packet frame (1024 bytes received)...
+Ingesting packet frame (1024 bytes received)...
+[NETWORK LOG] Command Type: 2, Length: 0, Magic: 0x12345678, Data: xV4
+Thruster calibration telecommand processed successfully.
+[NETWORK LOG] Command Type: 2, Length: 0, Magic: 0x12345678, Data: xV4
+Thruster calibration telecommand processed successfully.
+[NETWORK LOG] Command Type: 2, Length: 0, Magic: 0x12345678, Data: xV99W999999999999999999999999999999999999999999999999999999999999999999999
+Thruster calibration telecommand processed successfully.
+Ingesting packet frame (184 bytes received)...
+
+koukuwahara@lima-arm-fuzzer:~/IFN657_A2/IFN657-Software-Security$ ./sentinel_payload_patched targets/seeds_payload/seed_payload_a.bin
+=== Sentinel-1 Scientific Payload Ingestion Subsystem ===
+Processing observation frame label: IMG_CAL_04
+Payload frame dimensions: 4 x 4 x 1 (16 bytes required)
+Read 16 bytes from payload observation stream.
+Transferred 16 bytes into observation buffer.
+Active observation frame released from cache.
+
+koukuwahara@lima-arm-fuzzer:~/IFN657_A2/IFN657-Software-Security$ ./sentinel_telemetry_patched targets/seeds_telemetry/seed_telemetry_a.conf
+=== Sentinel-1 Orbital Telemetry Processor ===
+Initialising telemetry stream parser...
+Directive parsed: subsystem_mode=standby
+Directive parsed: sensor_id_primary=204
+[TELEMETRY LOG] CAL_ID_sensor_id_primary=204
+Directive parsed: sensor_id_secondary=205
+[TELEMETRY LOG] CAL_ID_sensor_id_secondary=205
+Directive parsed: cal_factor_thermal=0.98
+[TELEMETRY LOG] CAL_FACTOR_cal_factor_thermal=0.980000
+Directive parsed: cal_factor_optical=1.12
+[TELEMETRY LOG] CAL_FACTOR_cal_factor_optical=1.120000
+[TELEMETRY LOG] calibration_sweep_start
+Directive parsed: log_event=calibration_sweep_start
+Stream buffer resized to 1414 bytes.
+Directive parsed: stream_multiplier=2
+Telemetry parsing complete. Processed entries: 8
+```
 
 ---
 

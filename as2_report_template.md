@@ -528,7 +528,8 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ![[Pasted image 20261013193000.png]]
 
 **Exploitability Assessment:**
-`[Assess the severity and realistic attacker impact]`
+As another stack buffer overflow, this could allow an attacker to overflow memory on the stack, causing crashes, or allowing for altering return addresses. Altering return addresses could potentially jump the program to any point.
+
 
 ---
 
@@ -553,7 +554,6 @@ with open("payload_crash_02.bin", "wb") as f:
 ```
 
 **Root Cause Analysis:**
-`[Explain the technical root cause, memory state, and why the input leads to corruption]`
 In the function `process_payload_data()`, the global frame is only allocated the memory for the `sizeof(payload_frame_t)`, but the `parse_payload_file()` function that passes the payload data will allocate and read as much payload data as is specified in the input's header. If the `stream_data` coming from `parse_payload_file` is larger than the size of the struct `payload_frame_t` there will be a heap buffer overflow error causing the program to crash.
 
 **GDB / Sanitiser Evidence:**
@@ -617,7 +617,7 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ![[Pasted image 20261013234843.png]]
 
 **Exploitability Assessment:**
-`[Assess the severity and realistic attacker impact]`
+A heap buffer overflow exploit can allow attackers to crash the program or overwrite variables they shouldn't have access to that are stored on the heap. Sophisticated heap overflow attacks could overwrite huge amounts of data that the program is relying on to run properly.
 
 ---
 
@@ -638,7 +638,6 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ```
 
 **Root Cause Analysis:**
-`[Explain the technical root cause, memory state, and why the input leads to corruption]`
 If scanning for the expected header format doesn't work on line 98, line 99 directly passes the variable `header_line` to `log_payload_error()` which prints `header_line` to stderr without sanitising it, allowing for special format characters to be read. This can cause segmentation faults and reveal memory on the stack that shouldn't be accessible by the user.
 
 **GDB / Sanitiser Evidence:**
@@ -663,7 +662,7 @@ Program received signal SIGSEGV, Segmentation fault.
 ![[Pasted image 20261014130742.png]]
 
 **Exploitability Assessment:**
-`[Assess the severity and realistic attacker impact]`
+Since this exploit allows attacks to print special format parameters, attackers could be able to reveal memory on the stack that they shouldn't be able to have access to. Using the `%n` special format parameter attackers could also potentially write to memory, especially if memory addresses for other variables are being stored on the stack.
 
 ---
 
@@ -743,9 +742,12 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ![[Pasted image 20261014182244.png]]
 
 **Exploitability Assessment:**
-`[Assess the severity and realistic attacker impact]`
+
+This vulnerability is another stack buffer overflow. This can allow attacks that cause crashes, or that overwrite other variables on the stack. This vulnerability could also allow for overwriting return addresses, which could jump the program to any function.
 
 ---
+
+
 
 ## 5. Task 4: Code Remediation
 

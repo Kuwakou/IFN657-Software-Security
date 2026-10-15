@@ -779,8 +779,25 @@ if (copy_len > global_frame -> size) {
 }
 memcpy(global_frame->data, input_bytes, copy_len);
 ```
-The original code used `memcpy()` using `input_size` to copy into `global_frame->data`, a fixed 1024-byte buffer. When the input was larger than 1024 bytes, the copy wrote past the end of the heap buffer. The patch calculates a safe length. If `input_size` is larger than the buffer, it is reduced to `global_frame->size` and `memcpy()` then uses this capped length. 
+**Technical Justification:**
+The original code used `memcpy()` using `input_size` to copy into `global_frame->data`, a fixed 1024-byte buffer. When the input was larger than 1024 bytes, the copy wrote past the end of the heap buffer. The patch calculates a safe length. If `input_size` is larger than the buffer, it is reduced to `global_frame->size` and 
+`memcpy()` then uses this capped length. 
 
+### Patch for Vulnerability 5 (`sentinel_payload.c`): line 35
+```c
+fprintf(stderr, "%s", error_description);
+```
+**Technical Justification:**
+The original code used `fprintf(stderr, error_description)`, passing user-controlled input directly as the format string. Because `error_description` can reach reach this function straight from an unparsed header line, an attacker could embed specifiers such as `%x` or `%n`, which `fprint()` would interpret - reading from or writting to the stack and causing a segmentation fault. "%s" fixed format passing `error_description` as a normal argument. 
+
+### Patch for Vulnerability 6 (`sentinel_network.c`): line 43
+```c
+snprintf(header_summary, sizeof(header_summary), "Command Type: %d, Length: %d, Magic: 0x%x, Data: %s", 
+        pkt->type, pkt->length, pkt->magic, (char *)pkt->data);
+printf("[NETWORK LOG] %s\n", header_summary);
+```
+**Technical Justification:**
+The original code used `sprint()`, which writes into `header_summary` without checking the buffer size. Because `pkt->data` is attacker-controlled and the formatted output can exceed the 128-byte buffer, the write could run past the end of `header_summary` and corrupt the stack. The patch uses `snprintf()` with `sizeof(header_summary)`, so the function never writes more than the buffer can hold and always leaves room for the terminator. 
 
 ### 5.2 Regression Verification & Fuzzing Proof
 

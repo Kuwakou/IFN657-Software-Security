@@ -97,7 +97,7 @@ Expected contents:
  
 | File | Purpose |
 |------|---------|
-| `exploits/exploit.py` | Python script that builds the malicious input and drives the target to demonstrate control/impact |
+| `exploits/exploit.py` | Generates Task 5 memory-leak and control-flow payloads; see `exploits/INSTRUCTIONS.md` |
 | `exploits/payload_*.bin` (or `.conf`) | Generated payload file(s) the script produces or consumes |
 | `exploits/INSTRUCTIONS.md` | Step-by-step: how to build the target, run the exploit, and what to observe |
  
@@ -113,9 +113,13 @@ Run a generator:
 python3 exploits/payload_seedgen.py        # writes its output file(s) to the cwd
 ```
  
-<!-- TODO: once exploit.py exists, document its exact invocation here, e.g.:
-python3 exploits/exploit.py && ./sentinel_payload exploits/payload_exploit.bin
-and state the expected observable result (e.g. controlled EIP / shell / overwrite). -->
+Run the payload generator from the repository root:
+
+```bash
+python3 exploits/exploit.py
+```
+
+This generates `exploits/payload_memory_leak.bin` and `exploits/payload_control_flow.bin`. The script generates inputs only; it does not itself execute the target or prove exploit success.
  
 ---
 

@@ -1,0 +1,12 @@
+# AFL++ Dictionary for sentinel_payload
+header="PAYLOAD_FRAME"
+trigger="1337"
+fmt_s="%s"
+fmt_x="%x"
+fmt_n="%n"
+fmt_p="%p"
+fmt_d="%d"
+radar="RADAR_SCAN"
+spectral="SPECTRAL_RADAR"
+max_cap="1024"
+max_lbl="64"
